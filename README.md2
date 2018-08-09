@@ -1,0 +1,88 @@
+# README
+
+ge-purity.py主要分2个部分：
+
+- Mutect部分（因为Mutect运行需要较长时间, 2h+, 所以独立出来）
+- 计算纯度部分
+
+脚本基于**python3**,需要**fire**模块
+
+`pip install fire`
+
+## Mutect
+
+```bash
+Usage:       ge-purity.py mutect FA TUMOR_BAM NORMAL_BAM
+             ge-purity.py mutect --fa FA --tumor-bam TUMOR_BAM --normal-bam NORMAL_BAM
+实例: python ge-purity.py mutect \
+/p299/user/og04/ogsmor/Smor/database/human_genome_hg19/noGL/human_g1k_v37_noGL.fasta \
+/p299/user/og04/ogsmor/CA-PM/CA-PM-20171211_p1p4/align/HD778S51CFD05f10ng20kx9b1.bam \
+/p299/user/og04/ogsmor/CA-PM/CA-PM-20170705_cfDNA_p1p4/align/HD776S13CFD0f10ng20kx9b1.bam
+```
+
+在当前路径下新建`vcf_mutect`文件夹，并将`mutect`的结果输出到这个文件夹下。
+
+## 纯度计算
+
+这部分分成3个小部分
+
+### cns转换格式
+
+```bash
+Usage:       ge-purity.py cns2snp6 CNS ID
+             ge-purity.py cns2snp6 --cns CNS --ID ID
+实例: python ge-purity.py cns2snp6 /p299/user/og04/ogsmor/CA-PM/CA-PM-20171211_p1p4/cnv/HD778S51CFD05f10ng20kx9b1/HD778S51CFD05f10ng20kx9b1.cns \
+HD778S51CFD05f10ng20kx9b1
+```
+
+在当前路径生成`ID`_snp6.cns(HD778S51CFD05f10ng20kx9b1)文件
+
+### Generate an interval file from a BED file containing target coordinates
+
+```bash
+Usage:       ge-purity.py IntervalFile FA PANEL
+             ge-purity.py IntervalFile --fa FA --panel PANEL
+实例: python ge-purity.py IntervalFile /p299/user/og04/ogsmor/Smor/database/human_genome_hg19/noGL/human_g1k_v37_noGL.fasta \
+panel9b.bed
+```
+
+在当前路径下生成`baits_hg19_gcgene.txt`文件
+
+### 计算纯度
+
+```bash
+Usage:       ge-purity.py PureCN OUT ID SEG VCF
+             ge-purity.py PureCN --out OUT --ID ID --seg SEG --vcf VCF
+实例: python ge-purity.py PureCN \
+HD778 \
+HD778S51CFD05f10ng20kx9b1 \
+HD778S51CFD05f10ng20kx9b1_snp6.cns \
+vcf_mutect/HD776S13CFD0f10ng20kx9b1-VS-HD778S51CFD05f10ng20kx9b1.snv.mutect_all.vcf
+```
+
+会生成以`OUT`为前缀的结果文件，包含：
+
+```bash
+OUT_segmentation.pdf
+OUT.rds
+OUT.log
+OUT.csv
+OUT.pdf
+```
+
+OUT可以带路径，但路径需已经存在，PureCN无法自己创建路径。
+
+### 以上3步也可以一起运行
+
+```bash
+Usage:       ge-purity.py Pipe CNS ID FA PANEL OUT VCF
+             ge-purity.py Pipe --cns CNS --ID ID --fa FA --panel PANEL --out OUT --vcf VCF
+
+实例: python ge-purity.py Pipe \
+/p299/user/og04/ogsmor/CA-PM/CA-PM-20170613_p1p4/cnv/OG173510080N1LEUD2kx9b1-VS-OG173510080T1CFD20kx9b1/OG173510080N1LEUD2kx9b1-VS-OG173510080T1CFD20kx9b1.cns \
+OG173510080T1CFD20kx9b1 \
+/p299/user/og04/ogsmor/Smor/database/human_genome_hg19/noGL/human_g1k_v37_noGL.fasta \
+panel9b.bed \
+result \
+/var_mutect/OG173510080N1LEUD2kx9b1-VS-OG173510080T1CFD20kx9b1.snv.mutect_all.vcf
+```
