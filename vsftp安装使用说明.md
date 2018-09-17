@@ -8,7 +8,7 @@
 
 以下安装配置均在`root`账号下进行。
 
-## 安装
+## 安装====
 
 ```bash
 yum install -y vsftpd
